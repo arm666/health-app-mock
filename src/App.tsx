@@ -1,41 +1,32 @@
-import React, { useState } from "react";
-import { Calendar, FileText, Pill, User, Home, Heart } from "lucide-react";
-import AuthScreen from "./components/AuthScreen";
-import Dashboard from "./components/Dashboard";
-import AppointmentScreen from "./components/AppointmentScreen";
-import RecordsScreen from "./components/RecordsScreen";
-import MedicationScreen from "./components/MedicationScreen";
-import ProfileScreen from "./components/ProfileScreen";
-import ProfileEditScreen from "./components/ProfileEditScreen";
-import SettingsScreen from "./components/SettingsScreen";
-import SubscriptionScreen from "./components/SubscriptionScreen";
+import React, { useState } from 'react';
+import { Calendar, FileText, Pill, User, Home, Heart } from 'lucide-react';
+import AuthScreen from './components/AuthScreen';
+import Dashboard from './components/Dashboard';
+import AppointmentScreen from './components/AppointmentScreen';
+import RecordsScreen from './components/RecordsScreen';
+import MedicationScreen from './components/MedicationScreen';
+import ProfileScreen from './components/ProfileScreen';
+import ProfileEditScreen from './components/ProfileEditScreen';
+import SettingsScreen from './components/SettingsScreen';
+import SubscriptionScreen from './components/SubscriptionScreen';
 
-type Screen =
-  | "auth"
-  | "dashboard"
-  | "appointments"
-  | "records"
-  | "medications"
-  | "profile"
-  | "profile-edit"
-  | "settings"
-  | "subscription";
+type Screen = 'auth' | 'dashboard' | 'appointments' | 'records' | 'medications' | 'profile' | 'profile-edit' | 'settings' | 'subscription';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>("auth");
+  const [currentScreen, setCurrentScreen] = useState<Screen>('auth');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
-    setCurrentScreen("dashboard");
+    setCurrentScreen('dashboard');
   };
 
   const navigationItems = [
-    { id: "dashboard", icon: Home, label: "Home" },
-    { id: "appointments", icon: Calendar, label: "Appointments" },
-    { id: "records", icon: FileText, label: "Records" },
-    { id: "medications", icon: Pill, label: "Meds" },
-    { id: "profile", icon: User, label: "Profile" },
+    { id: 'dashboard', icon: Home, label: 'Home' },
+    { id: 'appointments', icon: Calendar, label: 'Appointments' },
+    { id: 'records', icon: FileText, label: 'Records' },
+    { id: 'medications', icon: Pill, label: 'Meds' },
+    { id: 'profile', icon: User, label: 'Profile' },
   ];
 
   if (!isAuthenticated) {
@@ -44,53 +35,36 @@ export default function App() {
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case "dashboard":
+      case 'dashboard':
         return <Dashboard />;
-      case "appointments":
+      case 'appointments':
         return <AppointmentScreen />;
-      case "records":
+      case 'records':
         return <RecordsScreen />;
-      case "medications":
+      case 'medications':
         return <MedicationScreen />;
-      case "profile":
-        return (
-          <ProfileScreen
-            onLogout={() => setIsAuthenticated(false)}
-            onEditProfile={() => setCurrentScreen("profile-edit")}
-            onSettings={() => setCurrentScreen("settings")}
-            onSubscription={() => setCurrentScreen("subscription")}
-          />
-        );
-      case "profile-edit":
-        return <ProfileEditScreen onBack={() => setCurrentScreen("profile")} />;
-      case "settings":
-        return (
-          <SettingsScreen
-            onBack={() => setCurrentScreen("profile")}
-            onSubscription={() => setCurrentScreen("subscription")}
-          />
-        );
-      case "subscription":
-        return (
-          <SubscriptionScreen onBack={() => setCurrentScreen("settings")} />
-        );
+      case 'profile':
+        return <ProfileScreen onLogout={() => setIsAuthenticated(false)} onEditProfile={() => setCurrentScreen('profile-edit')} onSettings={() => setCurrentScreen('settings')} onSubscription={() => setCurrentScreen('subscription')} />;
+      case 'profile-edit':
+        return <ProfileEditScreen onBack={() => setCurrentScreen('profile')} />;
+      case 'settings':
+        return <SettingsScreen onBack={() => setCurrentScreen('profile')} onSubscription={() => setCurrentScreen('subscription')} />;
+      case 'subscription':
+        return <SubscriptionScreen onBack={() => setCurrentScreen('settings')} />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <div
-      style={{ height: "100dvh" }}
-      className=" bg-background flex flex-col max-w-md mx-auto border-x"
-    >
+    <div className="h-screen bg-background flex flex-col max-w-md mx-auto border-x">
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden">{renderScreen()}</div>
+      <div className="flex-1 overflow-hidden">
+        {renderScreen()}
+      </div>
 
       {/* Bottom Navigation - Only show on main screens */}
-      {!["profile-edit", "settings", "subscription"].includes(
-        currentScreen
-      ) && (
+      {!['profile-edit', 'settings', 'subscription'].includes(currentScreen) && (
         <div className="bg-white border-t border-border px-2 py-1">
           <div className="flex justify-around">
             {navigationItems.map((item) => {
@@ -101,9 +75,9 @@ export default function App() {
                   key={item.id}
                   onClick={() => setCurrentScreen(item.id as Screen)}
                   className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-                    isActive
-                      ? "text-blue-600 bg-blue-50"
-                      : "text-gray-500 hover:text-gray-700"
+                    isActive 
+                      ? 'text-blue-600 bg-blue-50' 
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   <Icon size={20} />
