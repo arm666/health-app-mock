@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Calendar, FileText, Pill, User, Home, Heart } from 'lucide-react';
+import { Calendar, FileText, Pill, User, Home, Heart, Share2 } from 'lucide-react';
 import AuthScreen from './components/AuthScreen';
 import Dashboard from './components/Dashboard';
 import AppointmentScreen from './components/AppointmentScreen';
-import RecordsScreen from './components/RecordsScreen';
+import EnhancedRecordsScreen from './components/EnhancedRecordsScreen';
 import MedicationScreen from './components/MedicationScreen';
 import ProfileScreen from './components/ProfileScreen';
 import ProfileEditScreen from './components/ProfileEditScreen';
 import SettingsScreen from './components/SettingsScreen';
 import SubscriptionScreen from './components/SubscriptionScreen';
+import SharingSystem from './components/SharingSystem';
 
-type Screen = 'auth' | 'dashboard' | 'appointments' | 'records' | 'medications' | 'profile' | 'profile-edit' | 'settings' | 'subscription';
+type Screen = 'auth' | 'dashboard' | 'appointments' | 'records' | 'medications' | 'profile' | 'profile-edit' | 'settings' | 'subscription' | 'sharing';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('auth');
@@ -26,7 +27,7 @@ export default function App() {
     { id: 'appointments', icon: Calendar, label: 'Appointments' },
     { id: 'records', icon: FileText, label: 'Records' },
     { id: 'medications', icon: Pill, label: 'Meds' },
-    { id: 'profile', icon: User, label: 'Profile' },
+    { id: 'sharing', icon: Share2, label: 'Share' },
   ];
 
   if (!isAuthenticated) {
@@ -36,15 +37,17 @@ export default function App() {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onOpenProfile={() => setCurrentScreen('profile')} />;
       case 'appointments':
         return <AppointmentScreen />;
       case 'records':
-        return <RecordsScreen />;
+        return <EnhancedRecordsScreen />;
       case 'medications':
         return <MedicationScreen />;
+      case 'sharing':
+        return <SharingSystem onBack={() => setCurrentScreen('dashboard')} />;
       case 'profile':
-        return <ProfileScreen onLogout={() => setIsAuthenticated(false)} onEditProfile={() => setCurrentScreen('profile-edit')} onSettings={() => setCurrentScreen('settings')} onSubscription={() => setCurrentScreen('subscription')} />;
+        return <ProfileScreen onLogout={() => setIsAuthenticated(false)} onEditProfile={() => setCurrentScreen('profile-edit')} onSettings={() => setCurrentScreen('settings')} onSubscription={() => setCurrentScreen('subscription')} onSharing={() => setCurrentScreen('sharing')} onBack={() => setCurrentScreen('dashboard')} />;
       case 'profile-edit':
         return <ProfileEditScreen onBack={() => setCurrentScreen('profile')} />;
       case 'settings':
@@ -64,7 +67,7 @@ export default function App() {
       </div>
 
       {/* Bottom Navigation - Only show on main screens */}
-      {!['profile-edit', 'settings', 'subscription'].includes(currentScreen) && (
+      {!['profile', 'profile-edit', 'settings', 'subscription'].includes(currentScreen) && (
         <div className="bg-white border-t border-border px-2 py-1">
           <div className="flex justify-around">
             {navigationItems.map((item) => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Settings, Shield, Bell, Download, Share, LogOut, ChevronRight, Edit, Phone, Mail, MapPin, Calendar, Crown } from 'lucide-react';
+import { User, Settings, Shield, Bell, Download, Share, LogOut, ChevronRight, Edit, Phone, Mail, MapPin, Calendar, Crown, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
@@ -12,9 +12,11 @@ interface ProfileScreenProps {
   onEditProfile: () => void;
   onSettings: () => void;
   onSubscription: () => void;
+  onSharing?: () => void;
+  onBack: () => void;
 }
 
-export default function ProfileScreen({ onLogout, onEditProfile, onSettings, onSubscription }: ProfileScreenProps) {
+export default function ProfileScreen({ onLogout, onEditProfile, onSettings, onSubscription, onSharing, onBack }: ProfileScreenProps) {
   const [notifications, setNotifications] = useState({
     medications: true,
     appointments: true,
@@ -69,18 +71,23 @@ export default function ProfileScreen({ onLogout, onEditProfile, onSettings, onS
       action: () => console.log('Export data')
     },
     {
-      title: 'Share with Doctor',
+      title: 'Share Medical Records',
       description: 'Generate QR code for easy data sharing',
       icon: Share,
-      action: () => console.log('Share data')
+      action: onSharing || (() => console.log('Share data'))
     }
   ];
 
   return (
     <div className="h-full bg-gray-50 overflow-y-auto">
       {/* Header */}
-      <div className="bg-white px-6 py-4 border-b">
-        <h1 className="text-xl text-gray-900">Profile</h1>
+      <div className="bg-white px-4 py-4 border-b">
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" size="sm" onClick={onBack} className="p-2 -ml-2">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-xl text-gray-900">Profile</h1>
+        </div>
       </div>
 
       <div className="p-4 space-y-6">

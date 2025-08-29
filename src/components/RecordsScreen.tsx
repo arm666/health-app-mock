@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, Image, Download, Share, Search, Filter, Plus, Eye, Edit, Trash2, Heart, Calendar, Activity, Users, Stethoscope, ArrowLeft } from 'lucide-react';
+import { FileText, Image, Download, Share, Search, Filter, Plus, Eye, Edit, Trash2, Heart, Calendar, Activity, Users, Stethoscope, ArrowLeft, RefreshCw, Clock, MapPin, QrCode, Share2 } from 'lucide-react';
+import SharingSystem from './SharingSystem';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -12,6 +13,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
 import { Separator } from './ui/separator';
 
+interface OngoingTreatment {
+  id: number;
+  name: string;
+  type: 'Dialysis' | 'Chemotherapy' | 'Physical Therapy' | 'Radiation' | 'Infusion' | 'Surgery' | 'Other';
+  frequency: string;
+  duration: string;
+  startDate: string;
+  nextScheduled?: string;
+  endDate?: string;
+  provider: string;
+  facility: string;
+  notes: string;
+  status: 'Active' | 'Scheduled' | 'Completed' | 'Paused' | 'Cancelled';
+  totalSessions?: number;
+  completedSessions?: number;
+  lastCompleted?: string;
+  sideEffects?: string[];
+  instructions: string;
+}
+
 interface Disease {
   id: number;
   name: string;
@@ -22,6 +43,7 @@ interface Disease {
   severity: 'Mild' | 'Moderate' | 'Severe';
   previousMedications: string[];
   currentMedications: string[];
+  ongoingTreatments: OngoingTreatment[];
   surgeryHistory: Array<{
     procedure: string;
     date: string;
@@ -51,13 +73,14 @@ interface MedicalRecord {
   category: 'lab-results' | 'imaging' | 'prescriptions' | 'vaccinations';
   notes?: string;
   results?: string;
-  diseaseId?: number; // Link records to diseases
+  diseaseId?: number;
 }
 
 export default function RecordsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentView, setCurrentView] = useState<'main' | 'disease-detail'>('main');
+  const [currentView, setCurrentView] = useState<'main' | 'disease-detail' | 'sharing'>('main');
   const [selectedDisease, setSelectedDisease] = useState<Disease | null>(null);
+  const [sharingData, setSharingData] = useState<any>(null);
   
   const [diseases, setDiseases] = useState<Disease[]>([
     {
@@ -70,6 +93,7 @@ export default function RecordsScreen() {
       severity: 'Moderate',
       previousMedications: ['Glipizide 5mg'],
       currentMedications: ['Metformin 500mg', 'Linagliptin 5mg'],
+      ongoingTreatments: [],
       surgeryHistory: [],
       familyHistory: [
         { relation: 'Father', condition: 'Type 2 Diabetes', ageOfOnset: '55' },
@@ -81,21 +105,58 @@ export default function RecordsScreen() {
     },
     {
       id: 2,
-      name: 'Hypertension',
+      name: 'Chronic Kidney Disease',
       diagnosisDate: '2024-01-20',
       doctor: 'Dr. Sarah Wilson',
       facility: 'City Medical Center',
       status: 'Active',
-      severity: 'Mild',
+      severity: 'Severe',
       previousMedications: [],
-      currentMedications: ['Lisinopril 10mg'],
+      currentMedications: ['Lisinopril 10mg', 'Furosemide 40mg'],
+      ongoingTreatments: [
+        {
+          id: 1,
+          name: 'Hemodialysis',
+          type: 'Dialysis',
+          frequency: '3 times per week',
+          duration: '4 hours per session',
+          startDate: '2024-03-01',
+          nextScheduled: '2025-08-29',
+          provider: 'Dr. Jennifer Martinez',
+          facility: 'City Dialysis Center',
+          notes: 'Patient tolerates treatment well. Monitor fluid intake.',
+          status: 'Active',
+          totalSessions: 156,
+          completedSessions: 145,
+          lastCompleted: '2025-08-26',
+          sideEffects: ['Fatigue after sessions', 'Occasional muscle cramps'],
+          instructions: 'Arrive 15 minutes early. Bring water bottle. Avoid high-potassium foods 24 hours before.'
+        },
+        {
+          id: 2,
+          name: 'Nutritional Counseling',
+          type: 'Other',
+          frequency: 'Monthly',
+          duration: '1 hour',
+          startDate: '2024-03-15',
+          nextScheduled: '2025-09-15',
+          provider: 'Sarah Johnson, RD',
+          facility: 'City Medical Center',
+          notes: 'Focus on protein and phosphorus management.',
+          status: 'Active',
+          totalSessions: 12,
+          completedSessions: 6,
+          lastCompleted: '2025-08-15',
+          instructions: 'Bring food diary and current lab results.'
+        }
+      ],
       surgeryHistory: [],
       familyHistory: [
         { relation: 'Mother', condition: 'Hypertension', ageOfOnset: '48' }
       ],
-      symptoms: ['Occasional headaches', 'Dizziness'],
-      notes: 'Blood pressure well-controlled with medication. Lifestyle modifications recommended.',
-      lastUpdated: '2025-08-20'
+      symptoms: ['Swelling in legs', 'Shortness of breath', 'Fatigue'],
+      notes: 'Stage 4 CKD requiring dialysis. Preparing for kidney transplant evaluation.',
+      lastUpdated: '2025-08-26'
     }
   ]);
 
@@ -127,6 +188,20 @@ export default function RecordsScreen() {
         category: 'lab-results',
         results: 'HbA1c: 7.2% (Target: <7%). Continue current medication regimen.',
         diseaseId: 1
+      },
+      {
+        id: 3,
+        title: 'Kidney Function Panel',
+        date: '2025-08-26',
+        doctor: 'Dr. Sarah Wilson',
+        facility: 'City Medical Center',
+        type: 'Lab Test',
+        status: 'Attention Required',
+        fileType: 'PDF',
+        size: '198 KB',
+        category: 'lab-results',
+        results: 'Creatinine: 4.2 mg/dL, BUN: 65 mg/dL, GFR: 18 mL/min/1.73m². Continue dialysis as scheduled.',
+        diseaseId: 2
       }
     ],
     'imaging': [
@@ -161,7 +236,7 @@ export default function RecordsScreen() {
       },
       {
         id: 7,
-        title: 'Lisinopril 10mg',
+        title: 'Furosemide 40mg',
         date: '2025-08-18',
         doctor: 'Dr. Sarah Wilson',
         facility: 'City Medical Center',
@@ -170,7 +245,7 @@ export default function RecordsScreen() {
         fileType: 'PDF',
         size: '85 KB',
         category: 'prescriptions',
-        notes: 'Take once daily in the morning. Monitor blood pressure.',
+        notes: 'Take once daily in the morning. Monitor fluid balance.',
         diseaseId: 2
       }
     ],
@@ -197,11 +272,117 @@ export default function RecordsScreen() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDiseaseDialogOpen, setIsDiseaseDialogOpen] = useState(false);
   const [isEditDiseaseDialogOpen, setIsEditDiseaseDialogOpen] = useState(false);
+  const [isTreatmentDialogOpen, setIsTreatmentDialogOpen] = useState(false);
+  const [isEditTreatmentDialogOpen, setIsEditTreatmentDialogOpen] = useState(false);
+  const [isDeleteTreatmentDialogOpen, setIsDeleteTreatmentDialogOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
+  const [selectedTreatment, setSelectedTreatment] = useState<OngoingTreatment | null>(null);
   const [formData, setFormData] = useState<Partial<MedicalRecord>>({});
   const [diseaseFormData, setDiseaseFormData] = useState<Partial<Disease>>({});
+  const [treatmentFormData, setTreatmentFormData] = useState<Partial<OngoingTreatment>>({});
   const [activeTab, setActiveTab] = useState('diseases');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Treatment management functions
+  const handleAddTreatment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDisease) return;
+
+    const newTreatment: OngoingTreatment = {
+      id: Date.now(),
+      ...treatmentFormData as OngoingTreatment,
+      sideEffects: treatmentFormData.sideEffects || []
+    };
+    
+    setDiseases(prev => prev.map(disease => 
+      disease.id === selectedDisease.id 
+        ? { 
+            ...disease, 
+            ongoingTreatments: [...disease.ongoingTreatments, newTreatment],
+            lastUpdated: new Date().toISOString().split('T')[0] 
+          } 
+        : disease
+    ));
+    
+    // Update selected disease state
+    setSelectedDisease(prev => prev ? {
+      ...prev,
+      ongoingTreatments: [...prev.ongoingTreatments, newTreatment]
+    } : null);
+    
+    setIsTreatmentDialogOpen(false);
+    setTreatmentFormData({});
+  };
+
+  const handleEditTreatment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDisease || !selectedTreatment) return;
+
+    setDiseases(prev => prev.map(disease => 
+      disease.id === selectedDisease.id 
+        ? {
+            ...disease,
+            ongoingTreatments: disease.ongoingTreatments.map(treatment =>
+              treatment.id === selectedTreatment.id 
+                ? { ...treatment, ...treatmentFormData }
+                : treatment
+            ),
+            lastUpdated: new Date().toISOString().split('T')[0]
+          }
+        : disease
+    ));
+
+    // Update selected disease state
+    setSelectedDisease(prev => prev ? {
+      ...prev,
+      ongoingTreatments: prev.ongoingTreatments.map(treatment =>
+        treatment.id === selectedTreatment.id 
+          ? { ...treatment, ...treatmentFormData }
+          : treatment
+      )
+    } : null);
+    
+    setIsEditTreatmentDialogOpen(false);
+    setSelectedTreatment(null);
+    setTreatmentFormData({});
+  };
+
+  const handleDeleteTreatment = () => {
+    if (!selectedDisease || !selectedTreatment) return;
+
+    setDiseases(prev => prev.map(disease => 
+      disease.id === selectedDisease.id 
+        ? {
+            ...disease,
+            ongoingTreatments: disease.ongoingTreatments.filter(treatment => treatment.id !== selectedTreatment.id),
+            lastUpdated: new Date().toISOString().split('T')[0]
+          }
+        : disease
+    ));
+
+    // Update selected disease state
+    setSelectedDisease(prev => prev ? {
+      ...prev,
+      ongoingTreatments: prev.ongoingTreatments.filter(treatment => treatment.id !== selectedTreatment.id)
+    } : null);
+    
+    setIsDeleteTreatmentDialogOpen(false);
+    setSelectedTreatment(null);
+  };
+
+  const openEditTreatmentDialog = (treatment: OngoingTreatment) => {
+    setSelectedTreatment(treatment);
+    setTreatmentFormData({
+      ...treatment,
+      sideEffects: treatment.sideEffects || []
+    });
+    setIsEditTreatmentDialogOpen(true);
+  };
+
+  const openDeleteTreatmentDialog = (treatment: OngoingTreatment) => {
+    setSelectedTreatment(treatment);
+    setIsDeleteTreatmentDialogOpen(true);
+  };
 
   // Disease management functions
   const handleAddDisease = (e: React.FormEvent) => {
@@ -209,6 +390,7 @@ export default function RecordsScreen() {
     const newDisease: Disease = {
       id: Date.now(),
       ...diseaseFormData as Disease,
+      ongoingTreatments: [],
       lastUpdated: new Date().toISOString().split('T')[0]
     };
     
@@ -330,10 +512,13 @@ export default function RecordsScreen() {
       case 'Attention Required':
       case 'Monitoring Required': return 'bg-red-100 text-red-800';
       case 'Review Scheduled': return 'bg-yellow-100 text-yellow-800';
-      case 'Active': return 'bg-blue-100 text-blue-800';
+      case 'Active':
+      case 'Scheduled': return 'bg-blue-100 text-blue-800';
       case 'Completed':
       case 'Resolved': return 'bg-gray-100 text-gray-800';
       case 'Chronic': return 'bg-purple-100 text-purple-800';
+      case 'Paused': return 'bg-orange-100 text-orange-800';
+      case 'Cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -344,6 +529,18 @@ export default function RecordsScreen() {
       case 'Moderate': return 'bg-yellow-100 text-yellow-800';
       case 'Severe': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getTreatmentTypeIcon = (type: string) => {
+    switch (type) {
+      case 'Dialysis': return <RefreshCw className="w-4 h-4 text-blue-600" />;
+      case 'Chemotherapy': return <Activity className="w-4 h-4 text-red-600" />;
+      case 'Physical Therapy': return <Heart className="w-4 h-4 text-green-600" />;
+      case 'Radiation': return <Activity className="w-4 h-4 text-orange-600" />;
+      case 'Infusion': return <Activity className="w-4 h-4 text-purple-600" />;
+      case 'Surgery': return <Stethoscope className="w-4 h-4 text-gray-600" />;
+      default: return <Calendar className="w-4 h-4 text-gray-600" />;
     }
   };
 
@@ -364,6 +561,223 @@ export default function RecordsScreen() {
       year: 'numeric' 
     });
   };
+
+  const getNextTreatmentDays = (nextScheduled?: string) => {
+    if (!nextScheduled) return null;
+    const today = new Date();
+    const next = new Date(nextScheduled);
+    const diffTime = next.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const TreatmentForm = ({ onSubmit, isEdit = false }: { onSubmit: (e: React.FormEvent) => void, isEdit?: boolean }) => (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="treatmentName">Treatment Name</Label>
+        <Input
+          id="treatmentName"
+          value={treatmentFormData.name || ''}
+          onChange={(e) => setTreatmentFormData(prev => ({ ...prev, name: e.target.value }))}
+          placeholder="e.g., Hemodialysis"
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label htmlFor="treatmentType">Type</Label>
+          <Select 
+            value={treatmentFormData.type || ''} 
+            onValueChange={(value) => setTreatmentFormData(prev => ({ ...prev, type: value as OngoingTreatment['type'] }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Dialysis">Dialysis</SelectItem>
+              <SelectItem value="Chemotherapy">Chemotherapy</SelectItem>
+              <SelectItem value="Physical Therapy">Physical Therapy</SelectItem>
+              <SelectItem value="Radiation">Radiation</SelectItem>
+              <SelectItem value="Infusion">Infusion</SelectItem>
+              <SelectItem value="Surgery">Surgery</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="treatmentStatus">Status</Label>
+          <Select 
+            value={treatmentFormData.status || ''} 
+            onValueChange={(value) => setTreatmentFormData(prev => ({ ...prev, status: value as OngoingTreatment['status'] }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Scheduled">Scheduled</SelectItem>
+              <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="Paused">Paused</SelectItem>
+              <SelectItem value="Cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label htmlFor="frequency">Frequency</Label>
+          <Input
+            id="frequency"
+            value={treatmentFormData.frequency || ''}
+            onChange={(e) => setTreatmentFormData(prev => ({ ...prev, frequency: e.target.value }))}
+            placeholder="e.g., 3 times per week"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="duration">Duration per Session</Label>
+          <Input
+            id="duration"
+            value={treatmentFormData.duration || ''}
+            onChange={(e) => setTreatmentFormData(prev => ({ ...prev, duration: e.target.value }))}
+            placeholder="e.g., 4 hours"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label htmlFor="startDate">Start Date</Label>
+          <Input
+            id="startDate"
+            type="date"
+            value={treatmentFormData.startDate || ''}
+            onChange={(e) => setTreatmentFormData(prev => ({ ...prev, startDate: e.target.value }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="nextScheduled">Next Scheduled</Label>
+          <Input
+            id="nextScheduled"
+            type="date"
+            value={treatmentFormData.nextScheduled || ''}
+            onChange={(e) => setTreatmentFormData(prev => ({ ...prev, nextScheduled: e.target.value }))}
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="provider">Provider/Doctor</Label>
+        <Input
+          id="provider"
+          value={treatmentFormData.provider || ''}
+          onChange={(e) => setTreatmentFormData(prev => ({ ...prev, provider: e.target.value }))}
+          placeholder="Dr. John Smith"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="treatmentFacility">Facility</Label>
+        <Input
+          id="treatmentFacility"
+          value={treatmentFormData.facility || ''}
+          onChange={(e) => setTreatmentFormData(prev => ({ ...prev, facility: e.target.value }))}
+          placeholder="Hospital/Clinic Name"
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label htmlFor="totalSessions">Total Sessions (Optional)</Label>
+          <Input
+            id="totalSessions"
+            type="number"
+            value={treatmentFormData.totalSessions || ''}
+            onChange={(e) => setTreatmentFormData(prev => ({ ...prev, totalSessions: e.target.value ? parseInt(e.target.value) : undefined }))}
+            placeholder="e.g., 20"
+          />
+        </div>
+        <div>
+          <Label htmlFor="completedSessions">Completed Sessions</Label>
+          <Input
+            id="completedSessions"
+            type="number"
+            value={treatmentFormData.completedSessions || ''}
+            onChange={(e) => setTreatmentFormData(prev => ({ ...prev, completedSessions: e.target.value ? parseInt(e.target.value) : undefined }))}
+            placeholder="e.g., 15"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="lastCompleted">Last Completed</Label>
+        <Input
+          id="lastCompleted"
+          type="date"
+          value={treatmentFormData.lastCompleted || ''}
+          onChange={(e) => setTreatmentFormData(prev => ({ ...prev, lastCompleted: e.target.value }))}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="sideEffects">Side Effects (Optional)</Label>
+        <Textarea
+          id="sideEffects"
+          value={treatmentFormData.sideEffects?.join(', ') || ''}
+          onChange={(e) => setTreatmentFormData(prev => ({ ...prev, sideEffects: e.target.value.split(', ').filter(s => s.trim()) }))}
+          placeholder="List side effects separated by commas"
+          rows={2}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="instructions">Instructions/Notes</Label>
+        <Textarea
+          id="instructions"
+          value={treatmentFormData.instructions || ''}
+          onChange={(e) => setTreatmentFormData(prev => ({ ...prev, instructions: e.target.value }))}
+          placeholder="Pre-treatment instructions, preparation notes, etc."
+          rows={3}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="treatmentNotes">Additional Notes</Label>
+        <Textarea
+          id="treatmentNotes"
+          value={treatmentFormData.notes || ''}
+          onChange={(e) => setTreatmentFormData(prev => ({ ...prev, notes: e.target.value }))}
+          placeholder="Additional notes about the treatment"
+          rows={3}
+        />
+      </div>
+
+      <div className="flex space-x-3 pt-4">
+        <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700">
+          {isEdit ? 'Update Treatment' : 'Add Treatment'}
+        </Button>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => {
+            setIsTreatmentDialogOpen(false);
+            setIsEditTreatmentDialogOpen(false);
+            setTreatmentFormData({});
+          }}
+          className="flex-1"
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
 
   const DiseaseForm = ({ onSubmit, isEdit = false }: { onSubmit: (e: React.FormEvent) => void, isEdit?: boolean }) => (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -682,6 +1096,128 @@ export default function RecordsScreen() {
     </form>
   );
 
+  const TreatmentCard = ({ treatment }: { treatment: OngoingTreatment }) => {
+    const nextDays = getNextTreatmentDays(treatment.nextScheduled);
+    
+    return (
+      <Card className="hover:shadow-md transition-shadow">
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-2">
+                {getTreatmentTypeIcon(treatment.type)}
+                <h3 className="text-sm text-gray-900">{treatment.name}</h3>
+              </div>
+              <p className="text-xs text-gray-600">{treatment.provider}</p>
+              <p className="text-xs text-gray-500 flex items-center">
+                <MapPin className="w-3 h-3 mr-1" />
+                {treatment.facility}
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Badge className={getStatusColor(treatment.status)}>
+                {treatment.status}
+              </Badge>
+              <div className="flex space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openEditTreatmentDialog(treatment)}
+                  className="h-8 w-8 p-0"
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openDeleteTreatmentDialog(treatment)}
+                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2 mb-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-500">Frequency</span>
+              <span className="text-gray-700">{treatment.frequency}</span>
+            </div>
+            
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-500">Duration</span>
+              <span className="text-gray-700">{treatment.duration}</span>
+            </div>
+
+            {treatment.nextScheduled && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-500 flex items-center">
+                  <Clock className="w-3 h-3 mr-1" />
+                  Next Session
+                </span>
+                <div className="text-right">
+                  <span className="text-gray-700">{formatDate(treatment.nextScheduled)}</span>
+                  {nextDays !== null && (
+                    <p className={`text-xs ${nextDays <= 1 ? 'text-red-600' : nextDays <= 3 ? 'text-orange-600' : 'text-gray-500'}`}>
+                      {nextDays === 0 ? 'Today' : nextDays === 1 ? 'Tomorrow' : `in ${nextDays} days`}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {treatment.totalSessions && treatment.completedSessions !== undefined && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-500">Progress</span>
+                <span className="text-gray-700">
+                  {treatment.completedSessions}/{treatment.totalSessions} sessions
+                </span>
+              </div>
+            )}
+
+            {treatment.lastCompleted && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-500">Last Completed</span>
+                <span className="text-gray-700">{formatDate(treatment.lastCompleted)}</span>
+              </div>
+            )}
+          </div>
+
+          {treatment.sideEffects && treatment.sideEffects.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs text-gray-500 mb-1">Side Effects</p>
+              <div className="flex flex-wrap gap-1">
+                {treatment.sideEffects.slice(0, 2).map((effect, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    {effect}
+                  </Badge>
+                ))}
+                {treatment.sideEffects.length > 2 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{treatment.sideEffects.length - 2} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+
+          {treatment.instructions && (
+            <div className="mb-3">
+              <p className="text-xs text-gray-500 mb-1">Instructions</p>
+              <p className="text-xs text-gray-700 bg-gray-50 p-2 rounded">
+                {treatment.instructions.length > 100 
+                  ? `${treatment.instructions.substring(0, 100)}...` 
+                  : treatment.instructions
+                }
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
   const DiseaseCard = ({ disease }: { disease: Disease }) => (
     <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => viewDiseaseDetail(disease)}>
       <CardContent className="p-4">
@@ -690,6 +1226,11 @@ export default function RecordsScreen() {
             <div className="flex items-center space-x-2 mb-2">
               <Heart className="w-4 h-4 text-red-500" />
               <h3 className="text-sm text-gray-900">{disease.name}</h3>
+              {disease.ongoingTreatments.length > 0 && (
+                <Badge className="bg-blue-100 text-blue-800 text-xs">
+                  {disease.ongoingTreatments.length} treatments
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-gray-600">{disease.doctor}</p>
             <p className="text-xs text-gray-500">{disease.facility}</p>
@@ -921,6 +1462,53 @@ export default function RecordsScreen() {
                 <div>
                   <p className="text-gray-600 text-sm mb-2">Notes</p>
                   <p className="text-gray-900 text-sm bg-gray-50 p-3 rounded">{selectedDisease.notes}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Ongoing Treatments - NEW SECTION */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg flex items-center">
+                <RefreshCw className="w-5 h-5 mr-2 text-blue-600" />
+                Ongoing Treatments
+              </CardTitle>
+              <Dialog open={isTreatmentDialogOpen} onOpenChange={setIsTreatmentDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    <Plus size={16} className="mr-1" />
+                    Add Treatment
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Add New Treatment</DialogTitle>
+                    <DialogDescription>
+                      Add an ongoing treatment plan for {selectedDisease.name}.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <TreatmentForm onSubmit={handleAddTreatment} />
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              {selectedDisease.ongoingTreatments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <RefreshCw className="w-12 h-12 text-gray-400 mb-4" />
+                  <p className="text-gray-600 text-center mb-4">No ongoing treatments</p>
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => setIsTreatmentDialogOpen(true)}
+                  >
+                    Add First Treatment
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {selectedDisease.ongoingTreatments.map((treatment) => (
+                    <TreatmentCard key={treatment.id} treatment={treatment} />
+                  ))}
                 </div>
               )}
             </CardContent>
@@ -1237,7 +1825,7 @@ export default function RecordsScreen() {
         </Card>
       </div>
 
-      {/* All existing dialogs remain the same */}
+      {/* All dialogs */}
       {/* View Record Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -1334,7 +1922,20 @@ export default function RecordsScreen() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Edit Treatment Dialog */}
+      <Dialog open={isEditTreatmentDialogOpen} onOpenChange={setIsEditTreatmentDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Treatment</DialogTitle>
+            <DialogDescription>
+              Update the details of this ongoing treatment.
+            </DialogDescription>
+          </DialogHeader>
+          <TreatmentForm onSubmit={handleEditTreatment} isEdit />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Record Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1346,6 +1947,24 @@ export default function RecordsScreen() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteRecord} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Treatment Confirmation Dialog */}
+      <AlertDialog open={isDeleteTreatmentDialogOpen} onOpenChange={setIsDeleteTreatmentDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Treatment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{selectedTreatment?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteTreatment} className="bg-red-600 hover:bg-red-700">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

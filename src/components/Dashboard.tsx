@@ -1,11 +1,16 @@
 import React from 'react';
-import { Calendar, Pill, FileText, Activity, AlertCircle, Plus, Bell, Crown, TrendingUp } from 'lucide-react';
+import { Calendar, Pill, FileText, Activity, AlertCircle, Plus, Bell, Crown, TrendingUp, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
-export default function Dashboard() {
+interface DashboardProps {
+  onOpenProfile: () => void;
+}
+
+export default function Dashboard({ onOpenProfile }: DashboardProps) {
   const todaysMedications = [
     { name: 'Metformin', time: '8:00 AM', taken: true },
     { name: 'Lisinopril', time: '12:00 PM', taken: false },
@@ -35,6 +40,19 @@ export default function Dashboard() {
             <Button variant="ghost" size="sm" className="relative">
               <Bell size={20} />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="p-1 rounded-full" 
+              onClick={onOpenProfile}
+            >
+              <Avatar className="w-8 h-8">
+                <AvatarImage src="/placeholder-avatar.jpg" />
+                <AvatarFallback className="bg-blue-600 text-white text-sm">
+                  SJ
+                </AvatarFallback>
+              </Avatar>
             </Button>
           </div>
         </div>
