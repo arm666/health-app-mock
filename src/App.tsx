@@ -32,7 +32,8 @@ type Screen =
   | "sharing";
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>("auth");
+  const [currentScreen, setCurrentScreen] =
+    useState<Screen>("auth");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleLogin = () => {
@@ -42,7 +43,11 @@ export default function App() {
 
   const navigationItems = [
     { id: "dashboard", icon: Home, label: "Home" },
-    { id: "appointments", icon: Calendar, label: "Appointments" },
+    {
+      id: "appointments",
+      icon: Calendar,
+      label: "Appointments",
+    },
     { id: "records", icon: FileText, label: "Records" },
     { id: "medications", icon: Pill, label: "Meds" },
     { id: "sharing", icon: Share2, label: "Share" },
@@ -55,7 +60,11 @@ export default function App() {
   const renderScreen = () => {
     switch (currentScreen) {
       case "dashboard":
-        return <Dashboard onOpenProfile={() => setCurrentScreen("profile")} />;
+        return (
+          <Dashboard
+            onOpenProfile={() => setCurrentScreen("profile")}
+          />
+        );
       case "appointments":
         return <AppointmentScreen />;
       case "records":
@@ -63,30 +72,46 @@ export default function App() {
       case "medications":
         return <MedicationScreen />;
       case "sharing":
-        return <SharingSystem onBack={() => setCurrentScreen("dashboard")} />;
+        return (
+          <SharingSystem
+            onBack={() => setCurrentScreen("dashboard")}
+          />
+        );
       case "profile":
         return (
           <ProfileScreen
             onLogout={() => setIsAuthenticated(false)}
-            onEditProfile={() => setCurrentScreen("profile-edit")}
+            onEditProfile={() =>
+              setCurrentScreen("profile-edit")
+            }
             onSettings={() => setCurrentScreen("settings")}
-            onSubscription={() => setCurrentScreen("subscription")}
+            onSubscription={() =>
+              setCurrentScreen("subscription")
+            }
             onSharing={() => setCurrentScreen("sharing")}
             onBack={() => setCurrentScreen("dashboard")}
           />
         );
       case "profile-edit":
-        return <ProfileEditScreen onBack={() => setCurrentScreen("profile")} />;
+        return (
+          <ProfileEditScreen
+            onBack={() => setCurrentScreen("profile")}
+          />
+        );
       case "settings":
         return (
           <SettingsScreen
             onBack={() => setCurrentScreen("profile")}
-            onSubscription={() => setCurrentScreen("subscription")}
+            onSubscription={() =>
+              setCurrentScreen("subscription")
+            }
           />
         );
       case "subscription":
         return (
-          <SubscriptionScreen onBack={() => setCurrentScreen("settings")} />
+          <SubscriptionScreen
+            onBack={() => setCurrentScreen("settings")}
+          />
         );
       default:
         return <Dashboard />;
@@ -96,15 +121,20 @@ export default function App() {
   return (
     <div
       style={{ height: "100dvh" }}
-      className=" bg-background flex flex-col max-w-md mx-auto border-x"
+      className="bg-background flex flex-col max-w-md mx-auto border-x"
     >
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">{renderScreen()}</div>
+      <div className="flex-1 overflow-hidden">
+        {renderScreen()}
+      </div>
 
       {/* Bottom Navigation - Only show on main screens */}
-      {!["profile", "profile-edit", "settings", "subscription"].includes(
-        currentScreen
-      ) && (
+      {![
+        "profile",
+        "profile-edit",
+        "settings",
+        "subscription",
+      ].includes(currentScreen) && (
         <div className="bg-white border-t border-border px-2 py-1">
           <div className="flex justify-around">
             {navigationItems.map((item) => {
@@ -113,7 +143,9 @@ export default function App() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setCurrentScreen(item.id as Screen)}
+                  onClick={() =>
+                    setCurrentScreen(item.id as Screen)
+                  }
                   className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
                     isActive
                       ? "text-blue-600 bg-blue-50"
@@ -121,7 +153,9 @@ export default function App() {
                   }`}
                 >
                   <Icon size={20} />
-                  <span className="text-xs mt-1">{item.label}</span>
+                  <span className="text-xs mt-1">
+                    {item.label}
+                  </span>
                 </button>
               );
             })}

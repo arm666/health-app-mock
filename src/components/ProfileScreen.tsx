@@ -83,8 +83,8 @@ export default function ProfileScreen({ onLogout, onEditProfile, onSettings, onS
       {/* Header */}
       <div className="bg-white px-4 py-4 border-b">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={onBack} className="p-2 -ml-2">
-            <ArrowLeft className="w-5 h-5" />
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4" />
           </Button>
           <h1 className="text-xl text-gray-900">Profile</h1>
         </div>

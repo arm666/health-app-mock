@@ -7,7 +7,7 @@ import { Progress } from './ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface DashboardProps {
-  onOpenProfile: () => void;
+  onOpenProfile?: () => void;
 }
 
 export default function Dashboard({ onOpenProfile }: DashboardProps) {
@@ -44,12 +44,12 @@ export default function Dashboard({ onOpenProfile }: DashboardProps) {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-1 rounded-full" 
+              className="p-1 hover:bg-gray-100"
               onClick={onOpenProfile}
             >
-              <Avatar className="w-8 h-8">
-                <AvatarImage src="/placeholder-avatar.jpg" />
-                <AvatarFallback className="bg-blue-600 text-white text-sm">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="" alt="Sarah Johnson" />
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
                   SJ
                 </AvatarFallback>
               </Avatar>
