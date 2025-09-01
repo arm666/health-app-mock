@@ -18,6 +18,8 @@ import ProfileEditScreen from "./components/ProfileEditScreen";
 import SettingsScreen from "./components/SettingsScreen";
 import SubscriptionScreen from "./components/SubscriptionScreen";
 import SharingSystem from "./components/SharingSystem";
+import AIFloatingButton from "./components/AIFloatingButton";
+import AIAssistantModal from "./components/AIAssistantModal";
 
 type Screen =
   | "auth"
@@ -35,10 +37,15 @@ export default function App() {
   const [currentScreen, setCurrentScreen] =
     useState<Screen>("auth");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
     setCurrentScreen("dashboard");
+  };
+
+  const handleAIAssistant = () => {
+    setIsAIModalOpen(true);
   };
 
   const navigationItems = [
@@ -118,15 +125,35 @@ export default function App() {
     }
   };
 
+  // Screens where AI floating button should appear
+  const showAIButton = [
+    "dashboard",
+    "appointments", 
+    "records",
+    "medications",
+    "sharing"
+  ].includes(currentScreen);
+
   return (
     <div
       style={{ height: "100dvh" }}
-      className="bg-background flex flex-col max-w-md mx-auto border-x"
+      className="bg-background flex flex-col max-w-md mx-auto border-x relative"
     >
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         {renderScreen()}
       </div>
+
+      {/* AI Floating Button - Only show on main screens */}
+      {showAIButton && (
+        <AIFloatingButton onAIAssistant={handleAIAssistant} />
+      )}
+
+      {/* AI Assistant Modal */}
+      <AIAssistantModal 
+        isOpen={isAIModalOpen} 
+        onClose={() => setIsAIModalOpen(false)} 
+      />
 
       {/* Bottom Navigation - Only show on main screens */}
       {![
